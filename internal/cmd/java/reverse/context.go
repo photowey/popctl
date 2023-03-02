@@ -83,19 +83,22 @@ type (
 		Fields  []*Field
 	}
 	Field struct {
-		Name         string
-		Comment      string
-		CommentPlain string
-		PropertyType string
-		PropertyName string
-		String       string
-		Long         string
-		BigDecimal   string
-		Length       int
-		MinBit       int
-		MaxBit       int
-		NotNull      bool
-		PrimaryKey   bool
+		Name          string
+		Comment       string
+		CommentPlain  string
+		PropertyType  string
+		PropertyName  string
+		String        string
+		Long          string
+		BigDecimal    string
+		Length        int
+		MinBit        int
+		MaxBit        int
+		NotNull       bool
+		PrimaryKey    bool
+		NotNullCheck  bool
+		NotBlankCheck bool
+		NotEmptyCheck bool
 	}
 )
 

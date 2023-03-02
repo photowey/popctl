@@ -26,9 +26,16 @@ const (
 	JavaTypeLocalDateTimeImport = "java.time.LocalDateTime"
 	JsonSerialize               = "com.fasterxml.jackson.databind.annotation.JsonSerialize"
 	ToStringSerializer          = "com.fasterxml.jackson.databind.ser.std.ToStringSerializer"
-	SafeHtml                    = "org.hibernate.validator.constraints.SafeHtml"
 	Size                        = "javax.validation.constraints.Size"
 	Digits                      = "javax.validation.constraints.Digits"
+	NotNull                     = "javax.validation.constraints.NotNull"
+	NotBlank                    = "javax.validation.constraints.NotBlank"
+	NotEmpty                    = "javax.validation.constraints.NotEmpty"
+	SafeHtml                    = "org.hibernate.validator.constraints.SafeHtml" // @Deprecated
+)
+
+const (
+	dateLayout = "2006/01/02"
 )
 
 var (
@@ -53,7 +60,7 @@ func gen(args *java.Args) {
 	}
 
 	now := time.Now()
-	layout := "2006/01/02"
+	layout := dateLayout
 
 	fmt.Println("")
 	fmt.Println(green("---------------- $ popctl java reverse input report ----------------"))
@@ -236,10 +243,10 @@ func dto(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			imports = append(imports, ToStringSerializer)
 		}
 
-		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(imports, SafeHtml) {
+		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(imports, Size) {
 			// @SafeHtml Deprecated
 			// imports = append(imports, SafeHtml)
-			// imports = append(imports, Size)
+			imports = append(imports, Size)
 		}
 
 		if needAdd && javaType == JavaTypeBigDecimal && !stringz.ArrayContains(imports, Digits) {
@@ -316,10 +323,10 @@ func payload(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			imports = append(imports, ToStringSerializer)
 		}
 
-		if javaType == JavaTypeString && !stringz.ArrayContains(imports, SafeHtml) {
+		if javaType == JavaTypeString && !stringz.ArrayContains(imports, Size) {
 			// @SafeHtml Deprecated
 			// imports = append(imports, SafeHtml)
-			// imports = append(imports, Size)
+			imports = append(imports, Size)
 		}
 
 		if javaType == JavaTypeBigDecimal && !stringz.ArrayContains(imports, Digits) {
@@ -339,10 +346,10 @@ func payload(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			addImports = append(addImports, ToStringSerializer)
 		}
 
-		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(addImports, SafeHtml) {
+		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(addImports, Size) {
 			// @SafeHtml Deprecated
 			// addImports = append(addImports, SafeHtml)
-			// addImports = append(addImports, Size)
+			addImports = append(addImports, Size)
 		}
 
 		if needAdd && javaType == JavaTypeBigDecimal && !stringz.ArrayContains(addImports, Digits) {
@@ -362,10 +369,10 @@ func payload(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			deleteImports = append(deleteImports, ToStringSerializer)
 		}
 
-		if needDelete && javaType == JavaTypeString && !stringz.ArrayContains(deleteImports, SafeHtml) {
+		if needDelete && javaType == JavaTypeString && !stringz.ArrayContains(deleteImports, Size) {
 			// @SafeHtml Deprecated
 			// deleteImports = append(deleteImports, SafeHtml)
-			// deleteImports = append(deleteImports, Size)
+			deleteImports = append(deleteImports, Size)
 		}
 
 		if needDelete && javaType == JavaTypeBigDecimal && !stringz.ArrayContains(deleteImports, Digits) {
@@ -385,15 +392,48 @@ func payload(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			updateImports = append(updateImports, ToStringSerializer)
 		}
 
-		if needUpdate && javaType == JavaTypeString && !stringz.ArrayContains(updateImports, SafeHtml) {
+		if needUpdate && javaType == JavaTypeString && !stringz.ArrayContains(updateImports, Size) {
 			// @SafeHtml Deprecated
 			// updateImports = append(updateImports, SafeHtml)
-			// updateImports = append(updateImports, Size)
+			updateImports = append(updateImports, Size)
 		}
 
 		if needUpdate && javaType == JavaTypeBigDecimal && !stringz.ArrayContains(updateImports, Digits) {
 			updateImports = append(updateImports, Digits)
 		}
+
+		// default
+		if !stringz.ArrayContains(imports, NotNull) && !stringz.ArrayContains(imports, NotBlank) {
+			imports = append(imports, NotNull)
+		}
+
+		if javaType == JavaTypeString {
+			fd.NotBlankCheck = true
+			if !stringz.ArrayContains(addImports, NotBlank) {
+				addImports = append(addImports, NotBlank)
+			}
+			if !stringz.ArrayContains(updateImports, NotBlank) {
+				updateImports = append(updateImports, NotBlank)
+			}
+			if !stringz.ArrayContains(deleteImports, NotBlank) {
+				deleteImports = append(deleteImports, NotBlank)
+			}
+		}
+		if javaType != JavaTypeString {
+			fd.NotNullCheck = true
+			if !stringz.ArrayContains(addImports, NotNull) {
+				addImports = append(addImports, NotNull)
+			}
+			if !stringz.ArrayContains(updateImports, NotNull) {
+				updateImports = append(updateImports, NotNull)
+			}
+			if !stringz.ArrayContains(deleteImports, NotNull) {
+				deleteImports = append(deleteImports, NotNull)
+			}
+		}
+
+		// @NotEmpty
+		// fd.NotEmptyCheck = true
 
 		fields = append(fields, fd)
 
@@ -447,10 +487,10 @@ func query(ctx *Context, tablePtr *database.Table, args *java.Args) {
 			imports = append(imports, importz)
 		}
 
-		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(imports, SafeHtml) {
+		if needAdd && javaType == JavaTypeString && !stringz.ArrayContains(imports, Size) {
 			// @SafeHtml Deprecated
 			// imports = append(imports, SafeHtml)
-			// imports = append(imports, Size)
+			imports = append(imports, Size)
 		}
 
 		if needAdd && javaType == JavaTypeBigDecimal && !stringz.ArrayContains(imports, Digits) {
@@ -495,9 +535,9 @@ func engine(databasePtr *database.Database, args *java.Args) {
 		}
 
 		entities = append(entities, ee)
-		repositories = append(repositories, fmt.Sprintf("com.uphicoo.%s.repository.%s", ctx.Package, ee.RepositoryType))
-		services = append(services, fmt.Sprintf("com.uphicoo.%s.service.%s", ctx.Package, ee.ServiceType))
-		assemblers = append(assemblers, fmt.Sprintf("com.uphicoo.%s.service.assembler.%s", ctx.Package, ee.AssemblerType))
+		repositories = append(repositories, fmt.Sprintf("com.photowey.%s.database.repository.%s", ctx.Package, ee.RepositoryType))
+		services = append(services, fmt.Sprintf("com.photowey.%s.service.%s", ctx.Package, ee.ServiceType))
+		assemblers = append(assemblers, fmt.Sprintf("com.photowey.%s.service.assembler.%s", ctx.Package, ee.AssemblerType))
 	}
 
 	ctx.Engine.Entities = entities
@@ -534,9 +574,9 @@ func engineImpl(databasePtr *database.Database, args *java.Args) {
 		}
 
 		entities = append(entities, ee)
-		repositories = append(repositories, fmt.Sprintf("com.uphicoo.%s.repository.%s", ctx.Package, ee.RepositoryType))
-		services = append(services, fmt.Sprintf("com.uphicoo.%s.service.%s", ctx.Package, ee.ServiceType))
-		assemblers = append(assemblers, fmt.Sprintf("com.uphicoo.%s.service.assembler.%s", ctx.Package, ee.AssemblerType))
+		repositories = append(repositories, fmt.Sprintf("com.photowey.%s.database.repository.%s", ctx.Package, ee.RepositoryType))
+		services = append(services, fmt.Sprintf("com.photowey.%s.service.%s", ctx.Package, ee.ServiceType))
+		assemblers = append(assemblers, fmt.Sprintf("com.photowey.%s.service.assembler.%s", ctx.Package, ee.AssemblerType))
 	}
 
 	ctx.EngineImpl.Entities = entities
@@ -575,8 +615,7 @@ func populateTableField(field *database.Field, javaType string) *Field {
 			fd.Length, _ = strconv.Atoi(field.TypLength[1 : len(field.TypLength)-1])
 		}
 		if stringz.IsBlankString(field.TypLength) && field.TypLen == -1 {
-			// 可能是 TEXT 类型
-			fd.Length = 1000 // 默认 1000 长
+			fd.Length = 1000 // Default 1000
 		}
 	}
 	if fd.PropertyType == "BigDecimal" {
@@ -608,7 +647,7 @@ func convertJavaType(jdbcType string) (string, string) {
 
 func initTmplCtx(args *java.Args) {
 	now := time.Now()
-	layout := "2006/01/02"
+	layout := dateLayout
 	ctx = &Context{
 		App:       argz.App,
 		PascalApp: alphabet.PascalCase(argz.App),
